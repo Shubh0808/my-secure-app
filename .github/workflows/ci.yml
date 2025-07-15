@@ -25,29 +25,26 @@ jobs:
         working-directory: ./frontend
         run: npm install
 
-      - name: Run backend tests (add your tests here)
+      - name: Run backend tests
         working-directory: ./backend
         run: echo "No tests yet"
 
-      - name: Run frontend tests (add your tests here)
+      - name: Run frontend tests
         working-directory: ./frontend
         run: npm test -- --watchAll=false
 
-      # SonarQube Scan
       - name: SonarQube Scan
-        uses: sonarsource/sonarcloud-github-action@master
+        uses: sonarsource/sonarcloud-github-action@v2
         with:
           projectBaseDir: .
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      # Snyk security scan
       - name: Run Snyk to check vulnerabilities
-        uses: snyk/actions/node@master
+        uses: snyk/actions/node@v2
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
-      # Trivy Docker scan
       - name: Build Docker image
         run: docker build -t my-secure-app .
 

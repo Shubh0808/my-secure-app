@@ -30,7 +30,7 @@ jobs:
           npm install -g sonar-scanner
           sonar-scanner \
             -Dsonar.projectKey=my-app \
-            -Dsonar.host.url=http://your-sonarqube-server:9000 \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         working-directory: ./backend
 
@@ -40,7 +40,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Run Snyk Test
-        uses: snyk/actions/node@master
+        uses: snyk/actions/node@v2
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -56,6 +56,6 @@ jobs:
         run: docker build -t myapp-backend:latest ./backend
 
       - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@v0.0.23
+        uses: aquasecurity/trivy-action@v0.6.0
         with:
           image-ref: myapp-backend:latest
