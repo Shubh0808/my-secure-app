@@ -1,0 +1,57 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies (Backend)
+        working-directory: ./backend
+        run: npm install
+
+      - name: Install dependencies (Frontend)
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Run backend tests (add your tests here)
+        working-directory: ./backend
+        run: echo "No tests yet"
+
+      - name: Run frontend tests (add your tests here)
+        working-directory: ./frontend
+        run: npm test -- --watchAll=false
+
+      # SonarQube Scan
+      - name: SonarQube Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: .
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # Snyk security scan
+      - name: Run Snyk to check vulnerabilities
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      # Trivy Docker scan
+      - name: Build Docker image
+        run: docker build -t my-secure-app .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.6.0
+        with:
+          image-ref: my-secure-app
