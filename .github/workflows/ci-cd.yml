@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Full git history for SonarQube
+          fetch-depth: 0   # Full git history for SonarQube
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -39,8 +39,11 @@ jobs:
 
   snykScan:
     runs-on: ubuntu-latest
+    needs: sonarQubeScan
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Run Snyk Test in backend folder
         run: |
@@ -52,13 +55,16 @@ jobs:
 
   trivyScan:
     runs-on: ubuntu-latest
+    needs: snykScan
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Build Docker Image
         run: docker build -t myapp-backend:latest ./backend
 
       - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@v0.17.2
+        uses: aquasecurity/trivy-action@v0.15.0
         with:
           image-ref: myapp-backend:latest
