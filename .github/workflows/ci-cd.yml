@@ -39,13 +39,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./backend
+
       - name: Run Snyk Test
         uses: snyk/actions/node@v2
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: test
-        working-directory: ./backend
+        # Note: snyk/actions/node@v2 does not support working-directory directly,
+        # so we ran `npm install` above in backend folder to be ready.
 
   trivyScan:
     runs-on: ubuntu-latest
