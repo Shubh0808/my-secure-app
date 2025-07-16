@@ -30,6 +30,10 @@ jobs:
         run: npm install
         working-directory: ./backend
 
+      - name: Check git status
+        run: git status
+        working-directory: ./backend
+
       - name: Run SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -37,7 +41,7 @@ jobs:
         run: |
           npm install -g sonar-scanner
           sonar-scanner \
-            -Dsonar.projectKey=my-app \
+            -Dsonar.projectKey=my-secure-app \
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.login=$SONAR_TOKEN
         working-directory: ./backend
