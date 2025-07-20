@@ -1,10 +1,10 @@
 name: CI/CD Pipeline
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-  push:
+  pull_request:
     branches:
       - main
 
@@ -13,6 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0   # Full git history for SonarQube
+
+      - name: Configure Git user
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -23,39 +30,50 @@ jobs:
         run: npm install
         working-directory: ./backend
 
+      - name: Check git status
+        run: git status
+        working-directory: ./backend
+
       - name: Run SonarQube Scanner
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           npm install -g sonar-scanner
           sonar-scanner \
-            -Dsonar.projectKey=my-app \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.projectKey=my-secure-app \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN
         working-directory: ./backend
 
   snykScan:
     runs-on: ubuntu-latest
+    needs: sonarQubeScan
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - name: Run Snyk Test
-        uses: snyk/actions/node@v2
+      - name: Run Snyk Test in backend folder
+        run: |
+          cd backend
+          npm install -g snyk
+          snyk test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: test
-        working-directory: ./backend
 
   trivyScan:
     runs-on: ubuntu-latest
+    needs: snykScan
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Build Docker Image
         run: docker build -t myapp-backend:latest ./backend
 
       - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@v0.6.0
+        uses: aquasecurity/trivy-action@v0.15.0
         with:
           image-ref: myapp-backend:latest
