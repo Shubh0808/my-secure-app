@@ -2,19 +2,21 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   sonarQubeScan:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend  # Apply to all steps
+
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0   # Full git history for SonarQube
+          fetch-depth: 0
 
       - name: Configure Git user
         run: |
@@ -27,12 +29,12 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
-        working-directory: ./backend
+        run: npm ci
 
-      - name: Check git status
-        run: git status
-        working-directory: ./backend
+      - name: Debug Git
+        run: |
+          git status
+          git log -1
 
       - name: Run SonarQube Scanner
         env:
@@ -42,9 +44,9 @@ jobs:
           npm install -g sonar-scanner
           sonar-scanner \
             -Dsonar.projectKey=my-secure-app \
+            -Dsonar.sources=. \
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.login=$SONAR_TOKEN
-        working-directory: ./backend
 
   snykScan:
     runs-on: ubuntu-latest
@@ -57,6 +59,7 @@ jobs:
       - name: Run Snyk Test in backend folder
         run: |
           cd backend
+          npm ci
           npm install -g snyk
           snyk test
         env:
@@ -76,4 +79,4 @@ jobs:
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@v0.15.0
         with:
-          image-ref: myapp-backend:latest
+          image-ref: myapp-backe
