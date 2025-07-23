@@ -31,6 +31,7 @@ jobs:
           git log -1
 
       - name: Run SonarQube Scanner
+        working-directory: ./backend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -38,7 +39,7 @@ jobs:
           npm install -g sonar-scanner
           sonar-scanner \
             -Dsonar.projectKey=my-secure-app \
-            -Dsonar.sources=backend \
+            -Dsonar.sources=. \
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.login=$SONAR_TOKEN
 
@@ -75,4 +76,4 @@ jobs:
       - name: Run Trivy scan
         uses: aquasecurity/trivy-action@v0.15.0
         with:
-          image-ref: myapp-backend  # ✅ fix typo here (was "myapp-backe")
+          image-ref: myapp-backend
